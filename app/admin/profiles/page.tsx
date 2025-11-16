@@ -62,6 +62,10 @@ export default function ProfilesManagement() {
   const [activeTab, setActiveTab] = useState('all');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [subsetFilter, setSubsetFilter] = useState<'all' | 'signup_only' | 'detailed'>('all');
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+  const [dateFilterActive, setDateFilterActive] = useState<boolean>(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -212,6 +216,107 @@ export default function ProfilesManagement() {
     if (activeTab === 'flagged') return false;
     return profile.profile_status === activeTab;
   });
+
+  
+
+  const subsetFiltered = filteredProfiles.filter((p) => {
+    if (subsetFilter === 'signup_only') {
+      const extras = [
+        p.education,
+        p.field_of_study,
+        p.religion,
+        p.sect,
+        p.caste,
+        p.mother_tongue,
+        p.marital_status,
+        p.nationality,
+        p.ethnicity,
+      ];
+      const hasExtras = extras.some((v) => v && String(v).trim() !== "");
+      return !hasExtras && !p.has_photos;
+    }
+    if (subsetFilter === 'detailed') {
+      const extras = [
+        p.education,
+        p.field_of_study,
+        p.religion,
+        p.sect,
+        p.caste,
+        p.mother_tongue,
+        p.marital_status,
+        p.nationality,
+        p.ethnicity,
+      ];
+      const hasExtras = extras.some((v) => v && String(v).trim() !== "");
+      return hasExtras || p.has_photos;
+    }
+    return true;
+  }).filter((p) => {
+    if (!dateFilterActive || !dateFrom || !dateTo) return true;
+    const created = new Date(p.created_at).getTime();
+    const fromTs = new Date(dateFrom).getTime();
+    const toTs = new Date(dateTo).getTime();
+    return created >= fromTs && created <= toTs;
+  });
+
+  const rangeCount = profiles.filter((p) => {
+    if (!dateFrom || !dateTo) return false;
+    const created = new Date(p.created_at).getTime();
+    const fromTs = new Date(dateFrom).getTime();
+    const toTs = new Date(dateTo).getTime();
+    return created >= fromTs && created <= toTs;
+  }).length;
+
+  const signupOnlyCount = profiles.filter((p) => {
+    const extras = [
+      p.education,
+      p.field_of_study,
+      p.religion,
+      p.sect,
+      p.caste,
+      p.mother_tongue,
+      p.marital_status,
+      p.nationality,
+      p.ethnicity,
+    ];
+    const hasExtras = extras.some((v) => v && String(v).trim() !== "");
+    return !hasExtras && !p.has_photos;
+  }).length;
+
+  const detailedProfilesCount = Math.max(0, profiles.length - signupOnlyCount);
+
+  const inRangeProfiles = (!dateFilterActive || !dateFrom || !dateTo)
+    ? profiles
+    : profiles.filter((p) => {
+        const created = new Date(p.created_at).getTime();
+        const fromTs = new Date(dateFrom).getTime();
+        const toTs = new Date(dateTo).getTime();
+        return created >= fromTs && created <= toTs;
+      });
+
+  const signupOnlyCountDisplay = (!dateFilterActive || !dateFrom || !dateTo)
+    ? signupOnlyCount
+    : inRangeProfiles.filter((p) => {
+        const extras = [
+          p.education,
+          p.field_of_study,
+          p.religion,
+          p.sect,
+          p.caste,
+          p.mother_tongue,
+          p.marital_status,
+          p.nationality,
+          p.ethnicity,
+        ];
+        const hasExtras = extras.some((v) => v && String(v).trim() !== "");
+        return !hasExtras && !p.has_photos;
+      }).length;
+
+  const detailedProfilesCountDisplay = (!dateFilterActive || !dateFrom || !dateTo)
+    ? detailedProfilesCount
+    : Math.max(0, inRangeProfiles.length - signupOnlyCountDisplay);
+
+  
 
   const updateProfileStatus = async (userId: string, newStatus: 'approved' | 'rejected' | 'terminated' | 'pending' | 'flagged') => {
     try {
@@ -535,6 +640,93 @@ export default function ProfilesManagement() {
 
         {/* Main Content Area */}
         <main className="flex-1 p-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <button
+              className="text-left"
+              onClick={() => { setSubsetFilter('signup_only'); setActiveTab('all'); }}
+            >
+              <Card className="hover:shadow-xl transition-all duration-300 bg-white border-0">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Registered Profiles</CardTitle>
+                  <Users className="h-5 w-5 text-humsafar-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-humsafar-500">{signupOnlyCountDisplay}</div>
+                  <p className="text-xs text-gray-500">Signed up but no details</p>
+                </CardContent>
+              </Card>
+            </button>
+            <button
+              className="text-left"
+              onClick={() => { setSubsetFilter('detailed'); setActiveTab('all'); }}
+            >
+              <Card className="hover:shadow-xl transition-all duration-300 bg-white border-0">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Full Profiles</CardTitle>
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-humsafar-500">{detailedProfilesCountDisplay}</div>
+                  <p className="text-xs text-gray-500">Filled profile info or photos</p>
+                </CardContent>
+              </Card>
+            </button>
+            <button
+              className="text-left"
+              onClick={() => { setSubsetFilter('all'); setActiveTab('all'); }}
+            >
+              <Card className="hover:shadow-xl transition-all duration-300 bg-white border-0">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">All Profiles</CardTitle>
+                  <Users className="h-5 w-5 text-humsafar-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-humsafar-500">{(!dateFilterActive || !dateFrom || !dateTo) ? profiles.length : inRangeProfiles.length}</div>
+                  <p className="text-xs text-gray-500">Registered {signupOnlyCountDisplay} • Full {detailedProfilesCountDisplay}</p>
+                </CardContent>
+              </Card>
+            </button>
+            <Card className="hover:shadow-xl transition-all duration-300 bg-white border-0">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Date Range Filter</CardTitle>
+                <Clock className="h-5 w-5 text-humsafar-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 gap-2">
+                  <input
+                    type="datetime-local"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="border border-gray-300 rounded px-2 py-1 text-sm"
+                  />
+                  <input
+                    type="datetime-local"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="border border-gray-300 rounded px-2 py-1 text-sm"
+                  />
+                  <div className="flex items-center gap-2 mt-1">
+                    <Button
+                      size="sm"
+                      className="bg-humsafar-600 hover:bg-humsafar-700 text-white"
+                      onClick={() => setDateFilterActive(true)}
+                    >
+                      Apply
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => { setDateFilterActive(false); setDateFrom(''); setDateTo(''); }}
+                      className="border-humsafar-500 text-humsafar-600"
+                    >
+                      Reset
+                    </Button>
+                  </div>
+                  <div className="text-xs text-gray-500">Profiles in range: <span className="font-semibold text-humsafar-600">{rangeCount}</span></div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
           {/* View Controls */}
           <div className="flex items-center justify-between mb-4">
             <div className="text-sm text-gray-600">Toggle view</div>
@@ -685,7 +877,7 @@ export default function ProfilesManagement() {
               <CardDescription>Manage profile approval status and view profile details</CardDescription>
             </CardHeader>
             <CardContent>
-              {filteredProfiles.length === 0 ? (
+              {subsetFiltered.length === 0 ? (
                 <div className="text-center py-8">
                   <Users className="h-12 w-12 text-humsafar-400 mx-auto mb-4" />
                   <p className="text-humsafar-600">No profiles found matching your criteria</p>
@@ -706,7 +898,7 @@ export default function ProfilesManagement() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredProfiles.map((profile) => (
+                      {subsetFiltered.map((profile) => (
                         <TableRow key={profile.user_id}>
                           <TableCell className="text-sm font-medium">{profile.first_name} {profile.last_name}</TableCell>
                           <TableCell className="text-sm">{profile.email}</TableCell>
@@ -736,7 +928,7 @@ export default function ProfilesManagement() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredProfiles.map((profile) => {
+                  {subsetFiltered.map((profile) => {
                     // Calculate profile completion percentage
                   const calculateProfileCompletion = (profile: ProfileData) => {
                       const fields = [
