@@ -21,6 +21,7 @@ import {
   GraduationCap,
   Briefcase,
   User,
+  Camera,
 } from "lucide-react"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
@@ -678,7 +679,7 @@ export default function HomePage() {
         </section>
       )} */}
       {/* Quick Search Section */}
-      <section className="py-16 bg-gray-50" suppressHydrationWarning>
+      <section className="py-16 bg-gray-50 hidden" suppressHydrationWarning>
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Find Your Perfect Match</h2>
@@ -1022,6 +1023,73 @@ export default function HomePage() {
         </div>
       </section>
       {/* Stats Section */}
+      <section className="py-16 bg-white" suppressHydrationWarning>
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Create Your Profile</h2>
+            <p className="text-xl text-gray-600">Complete your profile to start matching</p>
+          </div>
+          <div className="grid md:grid-cols-4 gap-6 mb-10">
+            <Card className="border-humsafar-200">
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-humsafar-100 flex items-center justify-center">
+                  <User className="w-6 h-6 text-humsafar-600" />
+                </div>
+                <div className="font-semibold text-gray-800">Basic Information</div>
+                <div className="text-sm text-gray-600">Name, age, city and more</div>
+              </CardContent>
+            </Card>
+            <Card className="border-humsafar-200">
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-humsafar-100 flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-humsafar-600" />
+                </div>
+                <div className="font-semibold text-gray-800">Upload Photos</div>
+                <div className="text-sm text-gray-600">Add recent pictures</div>
+              </CardContent>
+            </Card>
+            <Card className="border-humsafar-200">
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-humsafar-100 flex items-center justify-center">
+                  <Heart className="w-6 h-6 text-humsafar-600" />
+                </div>
+                <div className="font-semibold text-gray-800">Preferences</div>
+                <div className="text-sm text-gray-600">Tell us what you seek</div>
+              </CardContent>
+            </Card>
+            <Card className="border-humsafar-200">
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-humsafar-100 flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-humsafar-600" />
+                </div>
+                <div className="font-semibold text-gray-800">Verification</div>
+                <div className="text-sm text-gray-600">Build trust and visibility</div>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="text-center">
+            {user ? (
+              <Link href="/dashboard" legacyBehavior>
+                <a>
+                  <Button className="bg-humsafar-600 hover:bg-humsafar-700">
+                    <User className="h-4 w-4 mr-2" />
+                    Create Your Profile
+                  </Button>
+                </a>
+              </Link>
+            ) : (
+              <Link href="/auth" legacyBehavior>
+                <a>
+                  <Button className="bg-humsafar-600 hover:bg-humsafar-700">
+                    <User className="h-4 w-4 mr-2" />
+                    Login to Create Profile
+                  </Button>
+                </a>
+              </Link>
+            )}
+          </div>
+        </div>
+      </section>
      
       {/* Features Section */}
       <section className="py-20 bg-gradient-to-b from-white via-humsafar-25 to-white relative" suppressHydrationWarning>

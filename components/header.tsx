@@ -32,6 +32,7 @@ export default function Header() {
   const [user, setUser] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [highlightProfileBtn, setHighlightProfileBtn] = useState(false)
 
 
 
@@ -96,9 +97,11 @@ export default function Header() {
           .single()
         
         setUserProfile(profile)
+        setHighlightProfileBtn(!profile || !profile.first_name)
       } else {
         setUser(null)
         setUserProfile(null)
+        setHighlightProfileBtn(false)
       }
     }
 
@@ -118,6 +121,7 @@ export default function Header() {
         // Fetch user profile data
         const { data: profile } = await supabase.from("user_profiles").select("*").eq("user_id", session.user.id).single()
         setUserProfile(profile)
+        setHighlightProfileBtn(!profile || !profile.first_name)
         
         // Check user subscription status for terminated profiles
         const { data: subscriptionData } = await supabase
@@ -133,6 +137,7 @@ export default function Header() {
       } else {
         setUser(null)
         setUserProfile(null)
+        setHighlightProfileBtn(false)
       }
     })
 
@@ -144,8 +149,16 @@ export default function Header() {
     try { localStorage.removeItem('sb-auth-token') } catch (_) {}
     setUser(null)
     setUserProfile(null)
+    setHighlightProfileBtn(false)
     router.push('/')
   }
+
+  useEffect(() => {
+    if (highlightProfileBtn) {
+      const t = setTimeout(() => setHighlightProfileBtn(false), 8000)
+      return () => clearTimeout(t)
+    }
+  }, [highlightProfileBtn])
 
 
 
@@ -253,10 +266,11 @@ export default function Header() {
                   <Link href="/dashboard" legacyBehavior>
                     <Button
                       variant="outline"
-                      className="border-humsafar-500 text-humsafar-600 hover:bg-humsafar-500 hover:text-white bg-transparent"
+                      className={`border-humsafar-500 text-humsafar-600 hover:bg-humsafar-500 hover:text-white bg-transparent ${highlightProfileBtn ? 'motion-safe:animate-pulse ring-2 ring-humsafar-500 ring-offset-2 ring-offset-white shadow-lg scale-105' : ''}`}
+                      onClick={() => setHighlightProfileBtn(false)}
                     >
                       <User className="h-4 w-4 mr-2" />
-                      Dashboard
+                      My Profile
                     </Button>
                   </Link>
                   <Button
